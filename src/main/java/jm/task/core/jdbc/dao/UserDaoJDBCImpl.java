@@ -97,7 +97,7 @@ public class UserDaoJDBCImpl implements UserDao {
         List<User> people = new ArrayList<>();
         try {
             Statement statement = connection.createStatement();
-            connection.setAutoCommit(false);
+            connection.setAutoCommit(true);
             String SQL = "SELECT * From User";
             ResultSet resultSet = statement.executeQuery(SQL);
             while (resultSet.next()) {
@@ -108,11 +108,11 @@ public class UserDaoJDBCImpl implements UserDao {
                 user.setAge(resultSet.getByte("age"));
                 people.add(user);
             }
-            connection.commit();
+//            connection.commit();
             statement.close();
         } catch (Exception e) {
             try {
-                connection.rollback();
+//                connection.rollback();
                 connection.close();
             } catch (SQLException ex) {
                 ex.printStackTrace();
