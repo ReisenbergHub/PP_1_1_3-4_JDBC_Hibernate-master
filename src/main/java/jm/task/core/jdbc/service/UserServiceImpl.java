@@ -6,7 +6,7 @@ import jm.task.core.jdbc.model.User;
 import java.util.List;
 
 /*
-    Комментарий №1: использовать полиморфизм, обращаться к классу через интерфейс
+    Комментарий №5: использовать полиморфизм, обращаться к классу через интерфейс
 
     Как было:
         UserDaoJDBCImpl userDao = new UserDaoJDBCImpl();
