@@ -24,22 +24,21 @@ import static jm.task.core.jdbc.util.Util.connection;
             e.printStackTrace();
         }
 
-    Как должно быть:
+    Что сделано:
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException ex) {
                 ex.printStackTrace();
-        }
-            e.printStackTrace();
-        } finally {
-            try {
-                connection.close();
-            } catch (SQLException exc) {
-                exc.printStackTrace();
+            } finally {
+                try {
+                    connection.close();
+                } catch (SQLException exc) {
+                    exc.printStackTrace();
+                }
             }
+            e.printStackTrace();
         }
-    Увы, не работает.
 */
 /*
     Комментарий №3: метод, который просто читает данные из бд не должен проходить в транзакции
@@ -81,9 +80,14 @@ public class UserDaoJDBCImpl implements UserDao {
         } catch (SQLException e) {
             try {
                 connection.rollback();
-                connection.close();
             } catch (SQLException ex) {
                 ex.printStackTrace();
+            } finally {
+                try {
+                    connection.close();
+                } catch (SQLException exc) {
+                    exc.printStackTrace();
+                }
             }
             e.printStackTrace();
         }
@@ -99,9 +103,14 @@ public class UserDaoJDBCImpl implements UserDao {
         } catch (SQLException e) {
             try {
                 connection.rollback();
-                connection.close();
             } catch (SQLException ex) {
                 ex.printStackTrace();
+            } finally {
+                try {
+                    connection.close();
+                } catch (SQLException exc) {
+                    exc.printStackTrace();
+                }
             }
             e.printStackTrace();
         }
@@ -121,9 +130,14 @@ public class UserDaoJDBCImpl implements UserDao {
         } catch (SQLException e) {
             try {
                 connection.rollback();
-                connection.close();
             } catch (SQLException ex) {
                 ex.printStackTrace();
+            } finally {
+                try {
+                    connection.close();
+                } catch (SQLException exc) {
+                    exc.printStackTrace();
+                }
             }
             e.printStackTrace();
         }
@@ -140,9 +154,14 @@ public class UserDaoJDBCImpl implements UserDao {
         } catch (SQLException e) {
             try {
                 connection.rollback();
-                connection.close();
             } catch (SQLException ex) {
                 ex.printStackTrace();
+            } finally {
+                try {
+                    connection.close();
+                } catch (SQLException exc) {
+                    exc.printStackTrace();
+                }
             }
             e.printStackTrace();
         }
@@ -165,9 +184,15 @@ public class UserDaoJDBCImpl implements UserDao {
             statement.close();
         } catch (SQLException e) {
             try {
-                connection.close();
+                connection.rollback();
             } catch (SQLException ex) {
                 ex.printStackTrace();
+            } finally {
+                try {
+                    connection.close();
+                } catch (SQLException exc) {
+                    exc.printStackTrace();
+                }
             }
             e.printStackTrace();
         }
@@ -185,9 +210,14 @@ public class UserDaoJDBCImpl implements UserDao {
         } catch (SQLException e) {
             try {
                 connection.rollback();
-                connection.close();
             } catch (SQLException ex) {
                 ex.printStackTrace();
+            } finally {
+                try {
+                    connection.close();
+                } catch (SQLException exc) {
+                    exc.printStackTrace();
+                }
             }
             e.printStackTrace();
         }
