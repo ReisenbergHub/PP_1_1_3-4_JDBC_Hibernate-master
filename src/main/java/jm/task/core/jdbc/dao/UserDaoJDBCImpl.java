@@ -10,6 +10,63 @@ import java.util.List;
 
 import static jm.task.core.jdbc.util.Util.connection;
 
+/*
+    Комментарий №2: закрывать соединение необходимо в файнали блоке
+
+    Как было:
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+                connection.close();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            e.printStackTrace();
+        }
+
+    Как должно быть:
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+        }
+            e.printStackTrace();
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException exc) {
+                exc.printStackTrace();
+            }
+        }
+    Увы, не работает.
+*/
+/*
+    Комментарий №3: метод, который просто читает данные из бд не должен проходить в транзакции
+
+    "Под транзакцией мы понимаем ряд действий (необязательно в БД), которые воспринимаются системой,
+        как единый пакет, т.е. или все действия проходят успешно,
+        или все откатываются на исходные позиции."
+
+    Что сделано:
+    Удалены строки:
+            connection.commit();
+            connection.rollback(); (эта строка была в catch блоке)
+
+    Включаю вручную автофиксацию после каждого действия. Для этого в строке
+            connection.setAutoCommit(false);
+    установил true.
+*/
+/*
+    Комментарий №4: в некоторых методах отсутствует коммит
+
+    Строка
+            connection.commit();
+    добавлена во все методы, кроме:
+            getAllUsers()
+    Коммит в этот метод не добавлен для соответствия комментарию №3.
+*/
+
 public class UserDaoJDBCImpl implements UserDao {
     public UserDaoJDBCImpl() {
 
@@ -21,7 +78,6 @@ public class UserDaoJDBCImpl implements UserDao {
             connection.setAutoCommit(false);
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS User (id BIGINT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(45), last_name VARCHAR(45), age INT);");
             connection.commit();
-            statement.close();
         } catch (SQLException e) {
             try {
                 connection.rollback();
@@ -62,7 +118,6 @@ public class UserDaoJDBCImpl implements UserDao {
             connection.commit();
             preparedStatement.close();
             System.out.println("User " + name + " added in database");
-
         } catch (SQLException e) {
             try {
                 connection.rollback();
@@ -76,8 +131,8 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void removeUserById(long id) {
         try {
-            connection.setAutoCommit(false);
             PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM User WHERE id=?");
+            connection.setAutoCommit(false);
             preparedStatement.setLong(1,id);
             preparedStatement.executeUpdate();
             connection.commit();
@@ -98,8 +153,7 @@ public class UserDaoJDBCImpl implements UserDao {
         try {
             Statement statement = connection.createStatement();
             connection.setAutoCommit(true);
-            String SQL = "SELECT * From User";
-            ResultSet resultSet = statement.executeQuery(SQL);
+            ResultSet resultSet = statement.executeQuery("SELECT * From User");
             while (resultSet.next()) {
                 User user = new User();
                 user.setId(resultSet.getLong("id"));
@@ -108,11 +162,9 @@ public class UserDaoJDBCImpl implements UserDao {
                 user.setAge(resultSet.getByte("age"));
                 people.add(user);
             }
-//            connection.commit();
             statement.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             try {
-//                connection.rollback();
                 connection.close();
             } catch (SQLException ex) {
                 ex.printStackTrace();
