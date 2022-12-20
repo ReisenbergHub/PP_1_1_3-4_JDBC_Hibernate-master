@@ -10,62 +10,6 @@ import java.util.List;
 
 import static jm.task.core.jdbc.util.Util.connection;
 
-/*
-    Комментарий №2: закрывать соединение необходимо в файнали блоке
-
-    Как было:
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-                connection.close();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-            e.printStackTrace();
-        }
-
-    Что сделано:
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            } finally {
-                try {
-                    connection.close();
-                } catch (SQLException exc) {
-                    exc.printStackTrace();
-                }
-            }
-            e.printStackTrace();
-        }
-*/
-/*
-    Комментарий №3: метод, который просто читает данные из бд не должен проходить в транзакции
-
-    "Под транзакцией мы понимаем ряд действий (необязательно в БД), которые воспринимаются системой,
-        как единый пакет, т.е. или все действия проходят успешно,
-        или все откатываются на исходные позиции."
-
-    Что сделано:
-    Удалены строки:
-            connection.commit();
-            connection.rollback(); (эта строка была в catch блоке)
-
-    Включаю вручную автофиксацию после каждого действия. Для этого в строке
-            connection.setAutoCommit(false);
-    установил true.
-*/
-/*
-    Комментарий №4: в некоторых методах отсутствует коммит
-
-    Строка
-            connection.commit();
-    добавлена во все методы, кроме:
-            getAllUsers()
-    Коммит в этот метод не добавлен для соответствия комментарию №3.
-*/
-
 public class UserDaoJDBCImpl implements UserDao {
     public UserDaoJDBCImpl() {
 
@@ -169,10 +113,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public List<User> getAllUsers() {
         List<User> people = new ArrayList<>();
-        try {
-            Statement statement = connection.createStatement();
-            connection.setAutoCommit(true);
-            ResultSet resultSet = statement.executeQuery("SELECT * From User");
+        try (ResultSet resultSet = connection.createStatement().executeQuery("SELECT * From User")) {
             while (resultSet.next()) {
                 User user = new User();
                 user.setId(resultSet.getLong("id"));
@@ -181,19 +122,7 @@ public class UserDaoJDBCImpl implements UserDao {
                 user.setAge(resultSet.getByte("age"));
                 people.add(user);
             }
-            statement.close();
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            } finally {
-                try {
-                    connection.close();
-                } catch (SQLException exc) {
-                    exc.printStackTrace();
-                }
-            }
             e.printStackTrace();
         }
         return people;
